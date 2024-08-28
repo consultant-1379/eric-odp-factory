@@ -1,0 +1,12 @@
+productName: "ODP Factory HELM"
+productNumber: "CXD1011204"
+images:
+  factory:
+    productName: "ODP Factory Image"
+    productNumber: "CXU1012524"
+    registry: "armdocker.rnd.ericsson.se"
+    # Note: recommended to make the value a template and use helm-package script from release automation builder to replace at build time, e.g. repoPath: "MAIN_IMAGE_VERSION"
+    repoPath: "REPO_PATH"
+    name: "IMAGE_NAME"
+    # Note: recommended to make the value a template and use helm-package script from release automation builder to replace at build time, e.g. tag: "MAIN_IMAGE_REPO_PATH"
+    tag: "VERSION"

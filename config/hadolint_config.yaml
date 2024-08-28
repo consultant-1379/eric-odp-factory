@@ -1,0 +1,50 @@
+#
+# COPYRIGHT Ericsson 2023
+#
+#
+#
+# The copyright to the computer program(s) herein is the property of
+#
+# Ericsson Inc. The programs may be used and/or copied only with written
+#
+# permission from Ericsson Inc. or in accordance with the terms and
+#
+# conditions stipulated in the agreement/contract under which the
+#
+# program(s) have been supplied.
+#
+
+no-fail: false  # Make true to always return code 0; indicating process success; irrespective of the rule violations and failure-threshold
+no-color: false # Make true to disable colorized output
+format: json    # Options [tty|json|checkstyle|codeclimate|gitlab_codeclimate|codacy]
+
+# List of registries to pull images from
+trustedRegistries:
+  - armdocker.rnd.ericsson.se
+
+# List of Rules to be Ignored
+ignored:
+  - DL3020
+  - DL3026
+  - SC1010
+
+# Override the severity of a rule
+override:
+  error:
+    - DL3001
+    - DL3002
+  warning:
+    - DL3042
+    - DL3033
+  info:
+    - DL3032
+  style:
+    - DL3015
+
+# Expected labels in the Dockerfile
+label-schema:
+  author: text
+  version: semver
+strict-labels: true # Warns of additional labels outside the schema. Make false to disable the warning.
+
+failure-threshold: error # Exit with code 1; indicating process failure; when rules with severity equal to or above threshold are violated. Options [error|warning|info|style|ignore|none]

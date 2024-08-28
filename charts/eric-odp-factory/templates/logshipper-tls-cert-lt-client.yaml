@@ -1,0 +1,3 @@
+{{- if eq "true" (include "eric-odp-factory.log-streaming-activated" .) }}
+   {{- include "eric-log-shipper-sidecar.logshipper-tls-cert-lt-client" . }}
+{{- end }}

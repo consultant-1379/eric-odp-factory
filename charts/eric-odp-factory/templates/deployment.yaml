@@ -1,0 +1,293 @@
+{{- $g := fromJson (include "eric-odp-factory.global" .) -}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "eric-odp-factory.name" . }}
+  labels:
+{{- include "eric-odp-factory.labels" . | indent 4 }}
+  annotations:
+    {{- include "eric-odp-factory.annotations" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "eric-odp-factory.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name | quote }}
+  strategy:
+    type: {{ .Values.updateStrategy.type }}
+    {{- if and (eq .Values.updateStrategy.type "RollingUpdate") .Values.updateStrategy.rollingUpdate }}
+    rollingUpdate:
+{{- if .Values.updateStrategy.rollingUpdate.maxUnavailable }}
+      maxUnavailable: {{ .Values.updateStrategy.rollingUpdate.maxUnavailable }}
+{{- end }}
+{{- if .Values.updateStrategy.rollingUpdate.maxSurge }}
+      maxSurge: {{ .Values.updateStrategy.rollingUpdate.maxSurge }}
+{{- end }}
+    {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "eric-odp-factory.labels" . | indent 8 }}
+      annotations:
+        {{- $appArmorAnn := include "eric-odp-factory.appArmorAnnotations" . | fromYaml -}}
+        {{- $commonAnn := include "eric-odp-factory.annotations" . | fromYaml -}}
+        {{- $promAnn := include "eric-odp-factory.prometheus" . | fromYaml -}}
+        {{- include "eric-odp-factory.mergeAnnotations" (dict "location" .Template.Name "sources" (list $appArmorAnn $commonAnn $promAnn )) | trim | nindent 8 }}
+    spec:
+    {{- if .Values.podPriority }}
+    {{- if .Values.podPriority.factory.priorityClassName }}
+      priorityClassName: {{ .Values.podPriority.factory.priorityClassName | quote }}
+    {{- end }}
+    {{- end }}
+      serviceAccountName: {{ include "eric-odp-factory.name" . }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "eric-odp-factory.name" . }}
+            items:
+              - key: LOG_CTRL_FILE
+                path: logcontrol.json
+        {{- if and .Values.rest.tlsEnabled .Values.rest.certSecret }}
+        - name: rest-cert
+          secret:
+            secretName: {{ .Values.rest.certSecret }}
+        {{- end }}
+        {{- if and .Values.rest.tlsEnabled .Values.rest.caSecret }}
+        - name: rest-ca
+          secret:
+            secretName: {{ .Values.rest.caSecret }}
+        {{- end }}
+        {{- if .Values.ldap.credsSecret }}
+        - name: ldap-creds
+          secret:
+            secretName: {{ .Values.ldap.credsSecret }}
+        {{- end }}
+        {{- if .Values.ldap.caSecret }}
+        - name: ldap-ca
+          secret:
+            secretName: {{ .Values.ldap.caSecret }}
+        {{- end }}
+        {{- if .Values.tokenservice.certSecret }}
+        - name: tokenservice-cert
+          secret:
+            secretName: {{ .Values.tokenservice.certSecret }}
+        {{- end }}
+        {{- if  .Values.tokenservice.caSecret }}
+        - name: tokenservice-ca
+          secret:
+            secretName: {{ .Values.tokenservice.caSecret }}
+        {{- end }}
+        {{- if eq "true" (include "eric-odp-factory.log-streaming-activated" .) }}
+          {{- include "eric-log-shipper-sidecar.log-shipper-sidecar-volumes" . | indent 8 }}
+        {{- end }}
+        {{- if .Values.extraVolumes }}
+{{ toYaml .Values.extraVolumes | indent 8 }}
+        {{- end }}
+      {{- if include "eric-odp-factory.pullSecrets" . }}
+      imagePullSecrets:
+        - name: {{ template "eric-odp-factory.pullSecrets" . }}
+      {{- end }}
+      {{- if (or .Values.nodeSelector $g.nodeSelector) }}
+      nodeSelector:
+        {{- include "eric-odp-factory.nodeSelector" . | nindent 8 }}
+      {{- end }}
+      topologySpreadConstraints: {{ toYaml .Values.topologySpreadConstraints | nindent 8 }}
+      {{- if eq .Values.affinity.podAntiAffinity "hard" }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - {{ include "eric-odp-factory.name" . }}
+              topologyKey: {{ .Values.affinity.topologyKey }}
+      {{- else if eq .Values.affinity.podAntiAffinity  "soft" }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - {{ include "eric-odp-factory.name" . }}
+                topologyKey: "kubernetes.io/hostname"
+      {{- end }}
+      tolerations: {{ include "eric-odp-factory.merge-tolerations" (dict "root" .) | nindent 8 }}
+      {{- if or .Values.extraInitContainers .Values.extraInitContainersTemplate }}
+      initContainers:
+        {{- if or .Values.extraInitContainers }}
+          {{- toYaml .Values.extraInitContainers | nindent 8 }}
+        {{- else }}
+          {{- include .Values.extraInitContainersTemplate.template . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ template "eric-odp-factory.mainImagePath" . }}
+          imagePullPolicy: {{ template "eric-odp-factory.imagePullPolicy" . }}
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            privileged: false
+            runAsNonRoot: true
+            runAsGroup: 157772
+            capabilities:
+              drop:
+                - all
+
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/eolm
+            {{- if and .Values.rest.tlsEnabled .Values.rest.certSecret }}
+            - name: rest-cert
+              mountPath: /run/secrets/restcrt
+              readOnly: true
+            {{- end }}
+            {{- if and .Values.rest.tlsEnabled .Values.rest.caSecret }}
+            - name: rest-ca
+              mountPath: /run/secrets/restca
+              readOnly: true
+            {{- end }}
+            {{- if .Values.ldap.credsSecret }}
+            - name: ldap-creds
+              mountPath: /run/secrets/ldapcreds
+              readOnly: true
+            {{- end }}
+            {{- if .Values.ldap.caSecret }}
+            - name: ldap-ca
+              mountPath: /run/secrets/ldapca
+              readOnly: true
+            {{- end }}
+            {{- if .Values.tokenservice.certSecret }}
+            - name: tokenservice-cert
+              mountPath: /run/secrets/tokenservicecrt
+              readOnly: true
+            {{- end }}
+            {{- if .Values.tokenservice.caSecret }}
+            - name: tokenservice-ca
+              mountPath: /run/secrets/tokenserviceca
+              readOnly: true
+            {{- end }}
+            {{- if eq "true" (include "eric-odp-factory.log-streaming-activated" .) }}
+                {{- include "eric-log-shipper-sidecar.log-shipper-sidecar-mounts" . | indent 12 }}
+            {{- end }}
+            {{- if .Values.extraVolumeMounts }}
+{{ toYaml .Values.extraVolumeMounts | indent 12 }}
+            {{- end }}
+          env:
+            - name: HEALTH_CHECK_PORT
+              value: {{ .Values.container.ports.health | quote }}
+            - name: METRICS_PORT
+              value: {{ .Values.container.ports.metrics | quote }}
+            - name: LOG_CTRL_FILE
+              value: "/etc/eolm/logcontrol.json"
+            - name: LOG_STREAMING_METHOD
+              value: {{ include "eric-odp-factory.log-streamingMethod" . }}
+            - name: NAMESPACE
+              value: "{{ .Release.Namespace }}"
+            {{- if .Values.ldap.url }}
+            - name: LDAP_URL
+              value: "{{ .Values.ldap.url }}"
+            {{- end }}
+            {{- if .Values.ldap.caSecret }}
+            - name: LDAP_TLS_CA
+              value: "/run/secrets/ldapca/tls.crt"
+            {{- end }}
+            {{- if .Values.ldap.userBaseDn }}
+            - name: LDAP_USER_BASE_DN
+              value: "{{ .Values.ldap.userBaseDn }}"
+            {{- end }}
+            {{- if .Values.ldap.userQuery }}
+            - name: LDAP_USER_QUERY
+              value: "{{ .Values.ldap.userQuery }}"
+            {{- end }}
+            {{- if .Values.ldap.userAttrs }}
+            - name: LDAP_USER_ATTRS
+              value: "{{ .Values.ldap.userAttrs }}"
+            {{- end }}
+            {{- if .Values.ldap.groupBaseDn }}
+            - name: LDAP_GROUP_BASE_DN
+              value: "{{ .Values.ldap.groupBaseDn }}"
+            {{- end }}
+            {{- if .Values.ldap.groupQuery }}
+            - name: LDAP_GROUP_QUERY
+              value: "{{ .Values.ldap.groupQuery }}"
+            {{- end }}
+            {{- if .Values.ldap.groupAttrs }}
+            - name: LDAP_GROUP_ATTRS
+              value: "{{ .Values.ldap.groupAttrs }}"
+            {{- end }}
+            {{- if .Values.ldap.credsSecret }}
+            - name: LDAP_CREDS_DIR
+              value: "/run/secrets/ldapcreds"
+            {{- end }}
+            - name: REST_TLS_ENABLED
+              value: "{{ .Values.rest.tlsEnabled }}"
+            {{- if .Values.rest.tlsEnabled }}
+            {{- if .Values.rest.certSecret }}
+            - name: REST_CERT_FILE
+              value: "/run/secrets/restcrt/tls.crt"
+            - name: REST_KEY_FILE
+              value: "/run/secrets/restcrt/tls.key"
+            {{- end }}
+            {{- if .Values.rest.caSecret }}
+            - name: REST_CA_FILE
+              value: "/run/secrets/restca/tls.crt"
+            {{- end }}
+            {{- end }}
+            {{- if .Values.tokenservice.url }}
+            - name: TOKENSERVICE_URL
+              value: "{{ .Values.tokenservice.url }}"
+            {{- end }}
+            {{- if .Values.tokenservice.certSecret }}
+            - name: TOKENSERVICE_CERT_FILE
+              value: "/run/secrets/tokenservicecrt/tls.crt"
+            - name: TOKENSERVICE_KEY_FILE
+              value: "/run/secrets/tokenservicecrt/tls.key"
+            {{- end }}
+            {{- if .Values.tokenservice.caSecret }}
+            - name: TOKENSERVICE_CA_FILE
+              value: "/run/secrets/tokenserviceca/tls.crt"
+            {{- end }}
+            {{- if .Values.extraEnv }}
+{{ toYaml .Values.extraEnv | indent 12 }}
+            {{- end }}
+          ports:
+            - name: rest
+              containerPort: {{ .Values.container.ports.rest }}
+              protocol: TCP
+            - name: probe-port
+              containerPort: {{ .Values.container.ports.health }}
+              protocol: TCP
+          {{- if not $g.security.tls.enabled }}
+            - name: http-metrics
+              containerPort: {{ .Values.container.ports.metrics }}
+              protocol: TCP
+          {{- else }}
+            - name: https-metrics
+              containerPort: {{ .Values.container.ports.metrics }}
+              protocol: TCP
+          {{- end }}
+          resources:
+          {{- include "eric-odp-factory.containerResources" (index .Values "resources" "eric-odp-factory") | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /health/liveness
+              port: {{ .Values.container.ports.health }}
+{{ toYaml (index .Values "probes" "factory" "livenessProbe") | indent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: {{ .Values.container.ports.health }}
+{{ toYaml (index .Values "probes" "factory" "readinessProbe") | indent 12 }}
+{{- if eq "true" (include "eric-odp-factory.log-streaming-activated" .) }}
+  {{- $logshipperImageDict := dict "logshipperSidecarImage" ((((.Values).global).logShipper).config).image -}}
+  {{- include "eric-log-shipper-sidecar.log-shipper-sidecar-container" (mergeOverwrite . $logshipperImageDict ) | indent 8 }}
+{{- end }}

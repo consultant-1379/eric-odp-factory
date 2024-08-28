@@ -1,0 +1,143 @@
+openapi: 3.0.3
+info:
+  version: 0.0.8
+  title: ODP Factory API
+  description: >-
+    An API for requesting On Demand Pods
+
+    The Factory looks for ODP Template ConfigMaps. An ODP Template ConfigMap is a ConfigMap with the label.
+      "com.ericsson.odp.template": "true"
+
+    The "application" is specified using the annotation "com.ericsson.odp.application"
+
+    The ODP Template ConfigMap must include the annotation "com.ericsson.odp.accessgroups". This value is a
+    a comma seperated list of LDAP group names. The user requesting an ODP for this application must be
+    a member of one of the listed LDAP groups or the request will be rejected.
+
+    The ODP Template ConfigMap must include a "template" field which is the YAML specification of the Pod to
+    be used for instances of this application.
+
+    The ODP Template ConfigMap may include other fields, those fields will be made available to the template
+    during execution, see description of the odp request below for more details
+
+paths:
+  /odp/:
+    post:
+      summary: Request On Demand Pod
+      description: >-
+        Requests an On Demand Pod (ODP) for the specified username and application. If the OPD already
+        exists, the response will indicate that the ODP is Ready. If there was an error creating the OPD
+        the response will include that error. Until the error exprires, requests for that ODP will just
+        return the same error.
+
+        The application provided in the request will be used to select a ConfigMap with a matching application label.
+        The "template" property ConfigMap must contain a Pod specification to use for ODP instances
+        of this application type. The template will be "expanded" using the Go template engine with the following fields available
+          * LdapUserAttr: Name/value pairs for the attributes fetched in the LDAP User Query
+          * LdapGroups: string in the format <group 1 attr a>:<group 1 attr b>;<group 2 attr a>:<group 2 attrb>....
+          * Application: string containing the requested application
+          * UserName: string containing the requested username
+          * ConfigData: Name/value pairs of properties from the application ConfigMap
+          * RequestData: Name/value pairs of properties from the data field in the request
+          * TokenName: Name of the ODP Token
+          * TokenData: Name/value pairs returned from the Token Service
+          * PodName: Name of the ODP that will be created
+
+        The data passed can be used in the ConfigMap template field.
+
+        For example, if we specified description as an LDAP user attribute, then this can be used in
+        the template to configure different responses based on the description
+              resources:
+              {{- if eq (index .LdapUserAttr "description") "large" }}
+                limits:
+                  cpu: "{{index .ConfigData "largeLimitCpu"}}"
+                  memory: "{{index .ConfigData "largeLimitMemory"}}"
+                requests:
+                  cpu: "{{index .ConfigData "largeRequestsCpu"}}"
+                  memory: "{{index .ConfigData "largeRequestsMemory"}}"
+              {{- else }}
+                limits:
+                  cpu: "{{index .ConfigData "defaultLimitCpu"}}"
+                  memory: "{{index .ConfigData "defaultLimitMemory"}}"
+                requests:
+                  cpu: "{{index .ConfigData "defaultRequestsCpu"}}"
+                  memory: "{{index .ConfigData "defaultRequestsMemory"}}"
+              {{- end }}
+        where ConfigMap would contain the following fields
+            largeLimitCpu: "400m"
+            largeRequestsCpu: "300m"
+            largeLimitMemory: "200Mi"
+            largeRequestsMemory: "100Mi"
+
+            defaultLimitCpu: "200m"
+            defaultRequestsCpu: "100m"
+            defaultLimitMemory: "125Mi"
+            defaultRequestsMemory: "75Mi"
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ "username", "application" ]
+              properties:
+                username:
+                  type: string
+                  description: User to create the ODP. Username will be lookup up in LDAP to get the configure user information
+                application:
+                  type: string
+                  description: >-
+                    Application for the ODP. This is used to select the template specification for ODP.
+                tokentypes:
+                  type: array
+                  items:
+                    type: string
+                  description: Optional list of types of token to request from the ODP Token service.
+                instanceid:
+                  type: string
+                  description: Optional id to be added to the podName. This allows to create multiple ODPs for the same application/username
+                profile:
+                  type: string
+                  description: Optional parameter to request a non-default value for the profile to be used for this OPD.
+                data:
+                  type: object
+                  additionalProperties: true
+                  description: Optional name/value pairs that are passed to the templating engine in the RequestData field
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  podname:
+                    type: string
+                    description: Name of the Pod being created
+                  resultcode:
+                    type: integer
+                    description: >-
+                      - -1: Creation in progress
+                      -  0: ODP Ready
+                      -  1: error looking up user in LDAP
+                      -  2: error constructing the ODP template
+                      -  3: error fetching ODP Token
+                      -  4: error from Kubernetes when creating ODP
+                      -  5: error user not authorised
+                      -  9: other error
+                  tokendata:
+                    type: object
+                    additionalProperties: true
+                    description: Name/value pairs that where returned by the ODP Token service
+                  podips:
+                    type: array
+                    items:
+                      type: string
+                    description: List of IP Addresses for the Pod
+                  error:
+                    type: string
+                    description: >-
+                     If set, indicates attempt to create ODP failed. If an attempt to create an ODP fails,
+                     successive attempts to create the same ODP will fail imediately (i.e. no attempt to create
+                     a Pod will be made) until the error expires.

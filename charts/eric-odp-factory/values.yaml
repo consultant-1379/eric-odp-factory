@@ -1,0 +1,145 @@
+
+# As default registry path, the global registry path will be used.
+#global:
+#  timezone: UTC
+#  registry:
+#    url: armdocker.rnd.ericsson.se
+#    imagePullPolicy: IfNotPresent
+#  labels: { }
+#  annotations: { }
+#  log:
+#    streamingMethod: "indirect" #Possible values are "indirect", "direct", "dual"
+
+replicaCount: 1
+
+annotations: { }
+
+image:
+  repository: ""
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imageCredentials:
+  repoPath: # see default value in eric-product-info.yaml file
+  pullSecret:
+
+updateStrategy:
+  # type can be OnDelete or RollingUpdate
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+service:
+  type: ClusterIP
+  rest:
+    port: 8001
+
+container:
+  ports:
+    rest: 8001
+    metrics: 8002
+    health: 8003
+
+resources:
+  eric-odp-factory:
+    limits:
+      cpu: "100m"
+      memory: "128Mi"
+      ephemeral-storage: "128Mi"
+    requests:
+      cpu: "10m"
+      memory: "8Mi"
+      ephemeral-storage: "8Mi"
+  logshipper:
+    requests:
+      memory: "50Mi"
+      cpu: "50m"
+    limits:
+      memory: "100Mi"
+      cpu: "100m"
+
+affinity:
+  podAntiAffinity: "soft"
+
+# Custom labels
+labels: { }
+
+terminationGracePeriodSeconds: 30
+
+tolerations: [ ]
+
+ldap:
+  url:
+  userBaseDn:
+  userQuery:
+  userAttrs:
+  groupBaseDn:
+  groupQuery:
+  groupAttrs:
+  credsSecret:
+  caSecret:
+
+rest:
+  tlsEnabled: false
+  certSecret:
+  caSecret:
+
+tokenservice:
+  url:
+  certSecret:
+  caSecret:
+
+probes:
+  factory:
+    livenessProbe:
+      initialDelaySeconds: 1
+      periodSeconds: 10
+      timeoutSeconds: 10
+      failureThreshold: 3
+    readinessProbe:
+      initialDelaySeconds: 1
+      periodSeconds: 10
+      timeoutSeconds: 10
+      successThreshold: 3
+      failureThreshold: 3
+
+podPriority:
+  factory:
+    priorityClassName: ""
+
+prometheus:
+  scrape_role: pod
+  scrape_interval: 1m
+
+topologySpreadConstraints: [ ]
+
+# DR D1123-127
+appArmorProfile:
+  # The setting applies to all container when the container name is omitted.
+  # { choice='unconfined, runtime/default, localhost, "" ' } [ default="" ]
+  type: ""
+
+# DR D1123-128
+seccompProfile:
+  # The setting applies to all container when the container name is omitted.
+  # { choice='unconfined, runtime/default, localhost, "" ' } [ default="" ]
+  type: ""
+
+# Configuration for LogShipper sidecar.
+logShipper:
+  storage:
+    path: /logs
+    size: "50Mi"
+  input:
+    files:
+      - enabled: true
+        paths:
+          - "factory.log"
+
+extraInitContainers: []
+extraInitContainersTemplate:
+extraVolumes: []
+extraVolumeMounts: []
+extraEnv: []

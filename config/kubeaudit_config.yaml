@@ -1,0 +1,50 @@
+#
+# COPYRIGHT Ericsson 2023
+#
+#
+#
+# The copyright to the computer program(s) herein is the property of
+#
+# Ericsson Inc. The programs may be used and/or copied only with written
+#
+# permission from Ericsson Inc. or in accordance with the terms and
+#
+# conditions stipulated in the agreement/contract under which the
+#
+# program(s) have been supplied.
+#
+
+Kubeaudit:
+  Product: "eric-odp-factory"
+  Product_contact: "PDLECMBAND@pdl.internal.ericsson.com"
+  ClusterMode:
+    Scan: False
+    KubeconfigFile: "config" # Default is config  #Mount the dir containing this file to conf
+    Namespace: "" # Optional, If Namespace given, auditing will be done only for the mentioned namespaces. (Comma separated if multiple ns)
+    AuditPickerFile: "" # Optional, #https://github.com/Shopify/kubeaudit#configuration-file, #Mount the dir containing this file to conf
+    Autofix : False # (or True it if needed)
+    AutofixedFile: "fixed_conf" # Mandatory If Autofix enabled, file name inside Mounted reports dir to add corrected config
+    ReportFormat: 'json' # Logrus,pretty are other available options. pretty is the default if not given.
+    DisplayReportConsole: False # Make it true if you want the reports to be displayed in console
+  ManifestMode:
+    Scan: True
+    SkipTests: True # Skip scanning manifests from tests folder in your chart. This will internally add --skip-test flag for helm template command.
+    armLinks:
+      Links: #
+      valuesOverride: # Array. If override is needed, add the values yaml names in the same order as arm links, if none, mark it ''
+    offlineArtifacts:
+      name:
+          - ''
+      valuesOverride:   # If override is needed, add the values yaml names in the same order as offlineArtifacts name, if none, mark it ''
+          - ''  # Mount this to /opt/va-scan-kubeaudit/conf dir
+    AuditPickerFile: "" # Optional #https://github.com/Shopify/kubeaudit#configuration-file, #Mount the dir containing this file to conf
+    Autofix : False # (or True it if needed)
+    AutofixDir: "fixed" # Mandatory If Autofix enabled, folder name inside mounted reports dir to add corrected Yamls
+    ReportFormat: 'json' # Logrus,pretty are other available options. Pretty is the default if not given.
+    DisplayReportConsole: False # Make it true if you want the reports to be displayed in console
+  CustomRun:
+    Scan: False # This if True, overrides all the above options.
+    # Give any valid kubeaudit command here
+    # Place and mount the needed config files in /opt/va-scan-kubeaudit/conf/"
+    Parameters: '' # Ex: "all -c /opt/va-scan-kubeaudit/conf/admin.conf"
+    DisplayReportConsole: False # Make it true if you want the reports to be displayed in console

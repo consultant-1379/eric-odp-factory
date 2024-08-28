@@ -1,0 +1,58 @@
+#
+# COPYRIGHT Ericsson 2023
+#
+#
+#
+# The copyright to the computer program(s) herein is the property of
+#
+# Ericsson Inc. The programs may be used and/or copied only with written
+#
+# permission from Ericsson Inc. or in accordance with the terms and
+#
+# conditions stipulated in the agreement/contract under which the
+#
+# program(s) have been supplied.
+#
+
+modelVersion: 2.0
+
+env:
+  - PWD
+
+var:
+  - version
+  - commithash
+
+properties:
+  # Gerrit
+  - gerrit-repo-name: OSS/ENM-Parent/SQ-Gate/com.ericsson.oss.containerisation/eric-odp-factory
+  - gerrit-repo-url: ${GERRIT_CENTRAL_HTTP}/#/projects/OSS/ENM-Parent/SQ-Gate/com.ericsson.oss.containerisation/eric-odp-factory
+
+  # Docker
+  - docker-image-name: eric-odp-factory
+  - dockerfile: Dockerfile # Path to dockerfile
+  - image-product-number: "CXU1012524"
+
+  # Helm
+  - helm-chart-name: eric-odp-factory
+  - enabled-helm-design-rules: "-DhelmDesignRule.config.drHc011=enable -DhelmDesignRule.config.DR-D1120-045-AD=enable"
+
+  # FOSSA
+  - fossa-team-name: eric-oss-hummingbirds # Updates
+
+  # CBOS
+  - cbos-image-repo: "armdocker.rnd.ericsson.se/proj-ldc/common_base_os_release"
+  - cbos-image-name: "sles"
+  - cbos-image-version: "6.3.0-13"
+
+  # Go
+  - go-builder-version: latest
+  - go-src: cmd/eric-odp-factory
+  - go-ldflags: "-w -s -X main.Version=${var.version} -X main.Commit=${var.commithash} -extldflags '-static'"
+  - go-lint-config: ${env.PWD}/golangci.yaml
+  - go-docker-params: "--workdir ${env.PWD}
+      --env GOBIN=${env.PWD}/build
+      --env GOCACHE=/tmp/.gocache
+      --env GOPATH=/tmp
+      --env HOME=/tmp
+      --env GOPRIVATE=gerrit-review.gic.ericsson.se/cloud-ran/src/golang-log-api,gerrit.ericsson.se/adp-ref-app/adp-ref-props,gerrit-review.gic.ericsson.se/cloud-ran/src/golang-tlsconf"

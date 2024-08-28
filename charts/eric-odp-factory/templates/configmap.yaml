@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "eric-odp-factory.name" . }}
+  labels:
+{{- include "eric-odp-factory.labels" . | indent 4 }}
+  annotations:
+{{- include "eric-odp-factory.annotations" . | indent 4 }}
+data:
+  LOG_CTRL_FILE: |-
+{{ .Files.Get "logcontrol.json" | indent 4}}

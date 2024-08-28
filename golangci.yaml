@@ -1,0 +1,116 @@
+---
+# Reference: https://golangci-lint.run/usage/configuration/
+linters:
+  # Enable the default linters and the additional ones.
+  enable:
+    - asciicheck
+    - bodyclose
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - errorlint
+    - exhaustive
+    - exportloopref
+    - funlen
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - goerr113
+    - gofmt
+    - gofumpt
+    - goheader
+    - gomnd
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - nakedret
+    - nlreturn
+    - noctx
+    - nolintlint
+    - prealloc
+    - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - staticcheck
+    - stylecheck
+    - tparallel
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+    - wrapcheck
+  disable:
+    - exhaustivestruct
+    - gci
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - golint
+    - interfacer
+    - maligned
+    - wsl
+    - testpackage # TODO: Check if its good practice to have a test package
+# https://golangci-lint.run/usage/linters
+linters-settings:
+  gofumpt:
+    module-path: eric-odp-factory
+  funlen:
+    lines: 100 # Default: 60
+    statements: 60 # Default: 40
+  gocritic:
+    enabled-tags:
+      - performance
+      - experimental
+      - style
+    disabled-checks:
+      - commentFormatting # https://github.com/go-critic/go-critic/issues/755
+      - commentedOutCode
+      - commentedOutImport
+      - paramTypeCombine
+      - ifElseChain
+      - unnamedResult
+      - exitAfterDefer #todo:  #must
+      - appendCombine
+      - wrapperFunc
+      - typeUnparen
+      - hugeParam #todo: #must
+      - ptrToRefParam #todo:  #must
+  govet:
+    check-shadowing: true
+  maligned:
+    suggest-new: true
+  depguard:
+    rules:
+      # Name of a rule.
+      main:
+        deny:
+          - pkg: io/ioutil
+            desc: The io/ioutil package has been deprecated, see https://go.dev/doc/go1.16#ioutil
+run:
+  modules-download-mode: mod
+  timeout: 10m
+output:
+  print-issued-lines: true
+  print-linter-name: true
+issues:
+   # Excluding configuration per-path, per-linter, per-text and per-source
+  exclude-rules:
+    # Exclude some linters from running on tests files.
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - godox
+        - gosec
+  new-from-rev:
+

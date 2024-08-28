@@ -1,0 +1,26 @@
+{{- $g := fromJson (include "eric-odp-factory.global" .) -}}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "eric-odp-factory.name" . }}
+  labels:
+    {{- include "eric-odp-factory.labels" . | indent 4 }}
+  annotations:
+    {{- include "eric-odp-factory.annotations-service" . | indent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.rest.port }}
+      targetPort: {{ .Values.container.ports.rest }}
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ template "eric-odp-factory.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+  ipFamilyPolicy: PreferDualStack
+  {{- if (eq (include "eric-odp-factory.internalIPFamily" .) "IPv4") }}
+  ipFamilies: ["IPv4"]
+  {{- else if (eq (include "eric-odp-factory.internalIPFamily" .) "IPv6") }}
+  ipFamilies: ["IPv6"]
+  {{- end }}

@@ -1,0 +1,109 @@
+/*******************************************************************************
+ * COPYRIGHT Ericsson 2023
+ *
+ *
+ *
+ * The copyright to the computer program(s) herein is the property of
+ *
+ * Ericsson Inc. The programs may be used and/or copied only with written
+ *
+ * permission from Ericsson Inc. or in accordance with the terms and
+ *
+ * conditions stipulated in the agreement/contract under which the
+ *
+ * program(s) have been supplied.
+ ******************************************************************************/
+@page {
+	size: 27cm 36cm;
+	margin: 2cm;
+}
+
+img {
+	width: 100%;
+}
+
+body {
+	margin: auto;
+	width: 80%;
+	padding: 0px;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+table {
+	border-collapse: collapse;
+	width: 100%;
+	border: 1px solid #ddd;
+	max-width: 100%;
+	table-layout: fixed;
+}
+
+th, td {
+	text-align: left;
+	padding: 8px;
+	border: 1px solid #ddd;
+	word-wrap: break-word;
+}
+
+tr:nth-child(even) {
+	background-color: #F2F2F2
+}
+
+th {
+	background-color: #3374FF;
+	color: white;
+}
+
+pre, code {
+	background: #D1DFFA;
+	white-space: pre-wrap;
+	/* css-3 */
+}
+
+body {
+	counter-reset: h2counter;
+}
+
+h1 {
+	counter-reset: h2counter;
+}
+
+h2 {
+	counter-reset: h3counter;
+}
+
+h3 {
+	counter-reset: h4counter;
+}
+
+h4 {
+	counter-reset: h5counter;
+}
+
+h5 {
+	counter-reset: h6counter;
+}
+
+h2:before {
+	content: counter(h2counter) ".\0000a0\0000a0";
+	counter-increment: h2counter;
+}
+
+h3:before {
+	content: counter(h2counter) "." counter(h3counter) ".\0000a0\0000a0";
+	counter-increment: h3counter;
+}
+
+h4:before {
+	content: counter(h2counter) "." counter(h3counter) "." counter(h4counter) ".\0000a0\0000a0";
+	counter-increment: h4counter;
+}
+
+h5:before {
+	content: counter(h2counter) "." counter(h3counter) "." counter(h4counter) "." counter(h5counter) ".\0000a0\0000a0";
+	counter-increment: h5counter;
+}
+
+h6:before {
+	content: counter(h2counter) "." counter(h3counter) "." counter(h4counter) "." counter(h5counter) "." counter(h6counter) ".\0000a0\0000a0";
+	counter-increment: h6counter;
+}

@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "eric-odp-factory.name" . }}-api
+  labels: {{ include "eric-odp-factory.labels" . | indent 4 }}
+  annotations: {{ include "eric-odp-factory.annotations" . | indent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ template "eric-odp-factory.name" . }}-api
+subjects:
+- kind: ServiceAccount
+  name: {{ template "eric-odp-factory.name" . }}

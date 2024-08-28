@@ -1,0 +1,382 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+        "affinity": {
+            "properties": {
+                "podAntiAffinity": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "properties": {},
+            "type": "object"
+        },
+        "appArmorProfile": {
+            "properties": {
+                "type": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "container": {
+            "properties": {
+                "ports": {
+                    "properties": {
+                        "health": {
+                            "type": "integer"
+                        },
+                        "metrics": {
+                            "type": "integer"
+                        },
+                        "rest": {
+                            "type": "integer"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "extraEnv": {
+            "type": "array"
+        },
+        "extraInitContainers": {
+            "type": "array"
+        },
+        "extraInitContainersTemplate": {
+            "type": ["object","null"],
+            "properties": {
+                "template": { "type": "string" }
+            },
+            "additionalProperties": true
+        },
+        "extraVolumeMounts": {
+            "type": "array"
+        },
+        "extraVolumes": {
+            "type": "array"
+        },
+        "image": {
+            "properties": {
+                "pullPolicy": {
+                    "type": "string"
+                },
+                "repository": {
+                    "type": "string"
+                },
+                "tag": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "imageCredentials": {
+            "properties": {
+                "pullSecret": {
+                    "type": ["string", "null"]
+                },
+                "repoPath": {
+                    "type": ["object", "string", "null"]
+                }
+            },
+            "type": "object"
+        },
+        "labels": {
+            "properties": {},
+            "type": "object"
+        },
+        "ldap": {
+            "properties": {
+                "caSecret": {
+                    "type": ["string", "null"]
+                },
+                "credsSecret": {
+                    "type": ["string", "null"]
+                },
+                "groupAttrs": {
+                    "type": ["string", "null"]
+                },
+                "groupBaseDn": {
+                    "type": ["string", "null"]
+                },
+                "groupQuery": {
+                    "type": ["string", "null"]
+                },
+                "url": {
+                    "type": ["string", "null"]
+                },
+                "userAttrs": {
+                    "type": ["string", "null"]
+                },
+                "userBaseDn": {
+                    "type": ["string", "null"]
+                },
+                "userQuery": {
+                    "type": ["string", "null"]
+                }
+            },
+            "type": "object"
+        },
+        "logShipper": {
+            "properties": {
+                "input": {
+                    "properties": {
+                        "files": {
+                            "items": {
+                                "properties": {
+                                    "enabled": {
+                                        "type": "boolean"
+                                    },
+                                    "paths": {
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "storage": {
+                    "properties": {
+                        "path": {
+                            "type": "string"
+                        },
+                        "size": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "podPriority": {
+            "properties": {
+                "factory": {
+                    "properties": {
+                        "priorityClassName": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "probes": {
+            "properties": {
+                "factory": {
+                    "properties": {
+                        "livenessProbe": {
+                            "properties": {
+                                "failureThreshold": {
+                                    "type": "integer"
+                                },
+                                "initialDelaySeconds": {
+                                    "type": "integer"
+                                },
+                                "periodSeconds": {
+                                    "type": "integer"
+                                },
+                                "timeoutSeconds": {
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "readinessProbe": {
+                            "properties": {
+                                "failureThreshold": {
+                                    "type": "integer"
+                                },
+                                "initialDelaySeconds": {
+                                    "type": "integer"
+                                },
+                                "periodSeconds": {
+                                    "type": "integer"
+                                },
+                                "successThreshold": {
+                                    "type": "integer"
+                                },
+                                "timeoutSeconds": {
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "prometheus": {
+            "properties": {
+                "scrape_interval": {
+                    "type": "string"
+                },
+                "scrape_role": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "replicaCount": {
+            "type": "integer"
+        },
+        "resources": {
+            "properties": {
+                "eric-odp-factory": {
+                    "properties": {
+                        "limits": {
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "ephemeral-storage": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "requests": {
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "ephemeral-storage": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "type": "object"
+                },
+                "logshipper": {
+                    "properties": {
+                        "limits": {
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "requests": {
+                            "properties": {
+                                "cpu": {
+                                    "type": "string"
+                                },
+                                "memory": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "rest": {
+            "properties": {
+                "caSecret": {
+                    "type": ["string", "null"]
+                },
+                "certSecret": {
+                    "type": ["string", "null"]
+                },
+                "tlsEnabled": {
+                    "type": "boolean"
+                }
+            },
+            "type": "object"
+        },
+        "seccompProfile": {
+            "properties": {
+                "type": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "service": {
+            "properties": {
+                "rest": {
+                    "properties": {
+                        "port": {
+                            "type": "integer"
+                        }
+                    },
+                    "type": "object"
+                },
+                "type": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "terminationGracePeriodSeconds": {
+            "type": "integer"
+        },
+        "tokenservice": {
+            "properties": {
+                "caSecret": {
+                    "type": ["string", "null"]
+                },
+                "certSecret": {
+                    "type": ["string", "null"]
+                },
+                "url": {
+                    "type": ["string", "null"]
+                }
+            },
+            "type": "object"
+        },
+        "tolerations": {
+            "type": "array"
+        },
+        "topologySpreadConstraints": {
+            "type": "array"
+        },
+        "updateStrategy": {
+            "properties": {
+                "rollingUpdate": {
+                    "properties": {
+                        "maxSurge": {
+                            "type": "integer"
+                        },
+                        "maxUnavailable": {
+                            "type": "integer"
+                        }
+                    },
+                    "type": "object"
+                },
+                "type": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        }
+    },
+    "type": "object"
+}

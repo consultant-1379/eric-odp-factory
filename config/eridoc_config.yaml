@@ -1,0 +1,30 @@
+#
+# COPYRIGHT Ericsson 2023
+#
+#
+#
+# The copyright to the computer program(s) herein is the property of
+#
+# Ericsson Inc. The programs may be used and/or copied only with written
+#
+# permission from Ericsson Inc. or in accordance with the terms and
+#
+# conditions stipulated in the agreement/contract under which the
+#
+# program(s) have been supplied.
+#
+
+repository: eridoca
+documents:
+  - title: "eric-odp-factory 1.16.0-hb6cbfd7 Vulnerability Analysis Report"
+    folderId: 0b004cffcff6b79d # Update with your eridoc folder id
+    file: "./build/eridoc/va-report/vulnerability_report_2.0.pdf"
+    class-prefix: "1"
+    decimal-class: "1597"
+    individual-number: "APR 201 524/1" # Update with your product number
+    strategy: "ordinal"
+    eri_document_type: "Analysis"
+    format: "pdf"
+    eri_audience: "Workgroup Members - Searchable"
+    eri_category: "Security"
+    eri_conf_class: "Ericsson Confidential"
